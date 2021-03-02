@@ -87,9 +87,17 @@ app.post('/register', async function (req, res) {
       process.env.JWT_KEY
     );
 
-    res.json(encodedUser);
+    res.json({
+      data: encodedUser,
+      error: false,
+      msg: ''
+    });
   } catch (err) {
-    res.json('Error creating authentication token')
+    res.json({
+      data: null,
+      error: true,
+      msg: 'Error, please try again'
+    });
     console.log('err', err)
   }
 });
@@ -103,7 +111,11 @@ app.post('/log-in', async function (req, res) {
     });
 
     if (!user) {
-      res.json('Email not found');
+      res.json({
+        data: null,
+        error: true,
+        msg: 'Email not found'
+      });
     }
 
     const userPassword = `${user.password}`
@@ -121,13 +133,25 @@ app.post('/log-in', async function (req, res) {
       
       const encodedUser = jwt.sign(payload, process.env.JWT_KEY);
 
-      res.json(encodedUser)
+      res.json({
+        data: encodedUser,
+        error: false,
+        msg: ''
+      })
     } else {
-      res.json('Password not found');
+      res.json({
+        data: null,
+        error: true,
+        msg: 'Password not found'
+      });
     }
   } catch (err) {
-    res.json('Error logging in')
-    console.log('Error in /auth', err);
+    res.json({
+      data: null,
+      error: true,
+      msg: 'Error logging in'
+    })
+    console.log('Error in /log-in', err);
   }
 });
 
@@ -167,16 +191,31 @@ app.get('/emails', async function(req, res) {
   try {
     console.log('/emails success!', req.user);
     const [emails] = await req.db.query(
-      `SELECT * FROM emails WHERE sent_to = :userEmail`,
+      `SELECT 
+        id, 
+        sent_from AS sentFrom,
+        sent_to AS sentTo,
+        subject,
+        body,
+        time_stamp AS timeStamp
+      FROM emails WHERE sent_to = :userEmail`,
       {
         userEmail: req.user.email
       }
     );
 
-    res.json(emails);
+    res.json({
+      data: emails,
+      error: false,
+      msg: ''
+    });
   } catch (err) {
     console.log('Error in /emails', err);
-    res.json('Error fetching emails');
+    res.json({
+      data: null,
+      error: true,
+      msg: 'Error fetching emails'
+    });
   }
 });
 
